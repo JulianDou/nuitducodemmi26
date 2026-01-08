@@ -116,6 +116,7 @@ function handlePauseLogic() {
     fill(255);
     textAlign(CENTER);
     textSize(32);
+    noStroke();
     text("HOLE IN THE WALL !", width/2, height/2 - 50);
     
     if (currentPoseImage) {
@@ -123,6 +124,7 @@ function handlePauseLogic() {
     }
 
     let timeLeft = ceil((pauseDuration - (millis() - lastPauseTime)) / 1000);
+    noStroke();
     text("REPRODUIS LA POSE : " + (timeLeft > 0 ? timeLeft : 0) + "s", width/2, height/2 + 50);
 
     if (millis() - lastPauseTime > pauseDuration) {
