@@ -133,6 +133,8 @@ function restartGame() {
     if (typeof lastDifficultyIncrease !== 'undefined') lastDifficultyIncrease = 0;
     // Reset lives
     playerLives = 3;
+    // Reset background
+    resetBackground();
   }
 }
 

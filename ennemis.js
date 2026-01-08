@@ -34,12 +34,16 @@ function getColorForBase(baseSpeed) {
  */
 function spawnEnemy() {
   let randomLane = floor(random(0, 3)); // 0, 1, or 2
-  let enemyX = (laneWidth * randomLane) + laneWidth / 2;
+  // Spawn above the track top (which is at height/3)
+  let trackTop = height / 3;
+  let startY = trackTop - 50;
+  let enemyX = getLaneXAtY(randomLane, startY);
   
   let enemy = {
     x: enemyX,
-    y: -30, // start above the screen
+    y: startY, // start above the track
     lane: randomLane,
+    baseSize: 100,
     size: 40,
     // Use the global base speed and add a small random variation
     speed: enemyBaseSpeed + random(0, 1)
@@ -79,10 +83,14 @@ function manageEnemies() {
   for (let i = enemies.length - 1; i >= 0; i--) {
     let enemy = enemies[i];
 
-    
-    
     // Move enemy down
     enemy.y += enemy.speed;
+    
+    // Update X position based on perspective
+    enemy.x = getLaneXAtY(enemy.lane, enemy.y);
+    
+    // Update size based on perspective
+    enemy.size = enemy.baseSize * getScaleAtY(enemy.y);
     
     // Draw enemy using its color
     let c = enemy.color || getColorForBase(enemyBaseSpeed);
