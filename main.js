@@ -6,7 +6,13 @@ function setup() {
 }
 
 function draw() {
-  background(40); 
+  background(40);
+
+  // Si gameOver, on affiche seulement l'écran de game over et on arrête tout le reste
+  if (typeof gameOver !== 'undefined' && gameOver) {
+    if (typeof displayGameOver === 'function') displayGameOver();
+    return; // On arrête ici, rien d'autre ne tourne
+  }
 
   // Gestion de la pause "Hole in the Wall"
   handlePauseLogic();

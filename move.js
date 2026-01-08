@@ -10,15 +10,13 @@ let lastPauseTime = 0;
 let pauseDuration = 5000; 
 let poseImages = [];
 let currentPoseImage;
+let poseValidated = false;
+let validationTime = 0;
+let currentTargetPose = 'T'; // Store the target pose name directly
 
 function preload() {
   // Chargement des images de poses (préchargées pour éviter loadImage au runtime)
-  let urls = [
-    'https://placehold.co/200x200/png?text=Pose+T',
-    'https://placehold.co/200x200/png?text=Pose+Y',
-    'https://placehold.co/200x200/png?text=Pose+L'
-  ];
-  poseImages = urls.map(u => loadImage(u));
+ 
   
   // Précharge le modèle bodyPose pour la webcam
   if (typeof preloadBodyPose === 'function') preloadBodyPose();
@@ -117,19 +115,52 @@ function handlePauseLogic() {
     textAlign(CENTER);
     textSize(32);
     noStroke();
-    text("HOLE IN THE WALL !", width/2, height/2 - 50);
     
-    if (currentPoseImage) {
-        image(currentPoseImage, width - 220, 20, 200, 200);
-    }
-
-    let timeLeft = ceil((pauseDuration - (millis() - lastPauseTime)) / 1000);
-    noStroke();
-    text("REPRODUIS LA POSE : " + (timeLeft > 0 ? timeLeft : 0) + "s", width/2, height/2 + 50);
-
-    if (millis() - lastPauseTime > pauseDuration) {
+    // Show result message if validation has occurred
+    if (poseValidated && window.lastPoseResult) {
+      fill(window.lastPoseResult.success ? color(0, 255, 0) : color(255, 0, 0));
+      textSize(48);
+      text(window.lastPoseResult.success ? "BRAVO !" : "RATÉ !", width/2, height/2 - 50);
+      textSize(28);
+      fill(255);
+      text(window.lastPoseResult.message, width/2, height/2 + 20);
+      
+      // End pause after showing result for 2 seconds
+      if (millis() - validationTime > 2000) {
         isPaused = false;
+        poseValidated = false;
         lastPauseTime = millis();
+      }
+    } else {
+      // Normal countdown display
+      text("HOLE IN THE WALL !", width/2, height/2 - 50);
+      
+      // Draw the target pose zones
+      if (typeof drawPoseZones === 'function') {
+        drawPoseZones(currentTargetPose);
+      }
+      
+      // Display the target pose name
+      fill(255, 255, 0);
+      textSize(48);
+      text("Pose " + currentTargetPose, width/2, 80);
+      
+      if (currentPoseImage) {
+          image(currentPoseImage, width - 220, 20, 200, 200);
+      }
+
+      let timeLeft = ceil((pauseDuration - (millis() - lastPauseTime)) / 1000);
+      noStroke();
+      text("REPRODUIS LA POSE : " + (timeLeft > 0 ? timeLeft : 0) + "s", width/2, height/2 + 50);
+
+      // Validate the pose when time is up
+      if (millis() - lastPauseTime > pauseDuration) {
+          if (typeof handlePoseValidation === 'function') {
+            handlePoseValidation();
+          }
+          poseValidated = true;
+          validationTime = millis();
+      }
     }
   }
 }
@@ -137,7 +168,10 @@ function handlePauseLogic() {
  function triggerPoseEvent() {
   isPaused = true;
   lastPauseTime = millis();
-  // Utilise une image déjà préchargée
+  // Pick a random pose
+  const poses = ['T', 'Y', 'L'];
+  currentTargetPose = random(poses);
+  // Utilise une image déjà préchargée (optional)
   currentPoseImage = random(poseImages);
 }
 
