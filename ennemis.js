@@ -39,6 +39,9 @@ function spawnEnemy() {
   let startY = trackTop - 50;
   let enemyX = getLaneXAtY(randomLane, startY);
   
+  // Get a random obstacle image from current theme
+  let obstacleImage = typeof getRandomObstacle === 'function' ? getRandomObstacle() : null;
+  
   let enemy = {
     x: enemyX,
     y: startY, // start above the track
@@ -46,7 +49,8 @@ function spawnEnemy() {
     baseSize: 100,
     size: 40,
     // Use the global base speed and add a small random variation
-    speed: enemyBaseSpeed + random(0, 1)
+    speed: enemyBaseSpeed + random(0, 1),
+    image: obstacleImage // Store the obstacle image
   };
   // set initial color based on current base speed (représente la difficulté)
   enemy.color = getColorForBase(enemyBaseSpeed);
@@ -92,11 +96,24 @@ function manageEnemies() {
     // Update size based on perspective
     enemy.size = enemy.baseSize * getScaleAtY(enemy.y);
     
-    // Draw enemy using its color
-    let c = enemy.color || getColorForBase(enemyBaseSpeed);
-    fill(c[0], c[1], c[2]);
-    noStroke();
-    ellipse(enemy.x, enemy.y, enemy.size, enemy.size);
+    // Try to get image if we don't have one yet (async loading)
+    if (!enemy.image && typeof getRandomObstacle === 'function') {
+      enemy.image = getRandomObstacle();
+    }
+    
+    // Draw enemy using image or fallback to colored circle
+    if (enemy.image) {
+      push();
+      imageMode(CENTER);
+      image(enemy.image, enemy.x, enemy.y, enemy.size, enemy.size);
+      pop();
+    } else {
+      // Fallback to colored circle
+      let c = enemy.color || getColorForBase(enemyBaseSpeed);
+      fill(c[0], c[1], c[2]);
+      noStroke();
+      ellipse(enemy.x, enemy.y, enemy.size, enemy.size);
+    }
     
     // Remove enemy if it's off screen (past the bottom)
     if (enemy.y > height + enemy.size) {

@@ -2,6 +2,10 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   calculateLayout(); 
   initPlayer();
+  
+  // Preload all theme assets
+  if (typeof preloadAssets === 'function') preloadAssets();
+  
   if (typeof startTimer === 'function') startTimer();
 }
 
@@ -14,9 +18,6 @@ function draw() {
     return; // On arrête ici, rien d'autre ne tourne
   }
 
-  // Gestion de la pause "Hole in the Wall"
-  handlePauseLogic();
-
   if (!isPaused) {
     // Le jeu ne tourne que si on n'est pas en pause
     if (typeof updateTimer === 'function') updateTimer();
@@ -25,28 +26,44 @@ function draw() {
     // Update background objects
     if (typeof updateBackgroundObjects === 'function') updateBackgroundObjects();
     
-    // Layer 1: Objects behind the horizon
-    if (typeof drawBackgroundBehind === 'function') drawBackgroundBehind();
-    
-    // Layer 2: Ground (covers objects below horizon)
+    // Z-INDEX LAYERING (bottom to top):
+    // Layer 0: Ground/terrain (bottom layer)
     if (typeof drawGround === 'function') drawGround();
     
-    // Layer 3: Objects in front of the horizon
-    if (typeof drawBackgroundFront === 'function') drawBackgroundFront();
-
+    // Layer 1: Sky background (on top of ground, at horizon)
+    if (typeof drawSky === 'function') drawSky();
+    
+    // Layer 2: Track lanes
     drawLanes();
+    
+    // Layer 3: Background objects behind horizon
+    if (typeof drawBackgroundBehind === 'function') drawBackgroundBehind();
+    
+    // Layer 4: Background objects in front of horizon
+    if (typeof drawBackgroundFront === 'function') drawBackgroundFront();
+    
+    // Layer 5: Player
     updatePlayer();
     drawPlayer();
     
+    // Layer 6: Enemies (obstacles on track)
     if (typeof manageEnemies === 'function') manageEnemies();
     if (typeof checkCollision === 'function') checkCollision();
   } else {
     // Visuel statique pendant la pause pour qu'on voie encore le circuit
+    // Keep same layering during pause
+    if (typeof drawGround === 'function') drawGround();
+    if (typeof drawSky === 'function') drawSky();
+    
     drawLanes();
     drawPlayer();
   }
 
-  // Interface utilisateur (UI)
+  // Layer 7: Pose prompt (above game, below UI)
+  // Gestion de la pause "Hole in the Wall"
+  handlePauseLogic();
+
+  // Layer 8: Interface utilisateur (UI) - topmost layer
   if (typeof displayTimer === 'function') displayTimer();
   if (typeof displayLives === 'function') displayLives();
   if (typeof displayGameOver === 'function') displayGameOver();

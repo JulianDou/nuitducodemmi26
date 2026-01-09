@@ -22,7 +22,7 @@ function spawnBackgroundObject() {
   // Keep objects further from center to ensure they expand away from track
   let startXAtHorizon;
   let side; // -1 for left, 1 for right
-  let minDistanceFromCenter = topTrackWidth * 0.8; // Minimum distance from center
+  let minDistanceFromCenter = topTrackWidth; // Minimum distance from center
   
   if (random() > 0.5) {
     // Left side of screen
@@ -36,14 +36,18 @@ function spawnBackgroundObject() {
     side = 1;
   }
   
+  // Get a random object image from current theme
+  let objectImage = typeof getRandomObject === 'function' ? getRandomObject() : null;
+  
   let bgObject = {
     y: startY,
     horizonX: startXAtHorizon, // X position at horizon
     side: side,
-    baseSize: 60,
-    size: 60,
+    baseSize: 200,
+    size: 300,
     speed: 2,
-    color: [255, 165, 0] // orange placeholder
+    color: [255, 165, 0], // orange placeholder (fallback)
+    image: objectImage // Store the image reference
   };
   
   backgroundObjects.push(bgObject);
@@ -99,9 +103,23 @@ function drawBackgroundBehind() {
   let trackTop = height / 3;
   for (let obj of backgroundObjects) {
     if (obj.y < trackTop) {
-      fill(obj.color[0], obj.color[1], obj.color[2]);
-      noStroke();
-      ellipse(obj.x, obj.y, obj.size, obj.size);
+      // Try to get image if we don't have one yet (async loading)
+      if (!obj.image && typeof getRandomObject === 'function') {
+        obj.image = getRandomObject();
+      }
+      
+      if (obj.image) {
+        // Draw the image centered
+        push();
+        imageMode(CENTER);
+        image(obj.image, obj.x, obj.y, obj.size, obj.size);
+        pop();
+      } else {
+        // Fallback to colored circle
+        fill(obj.color[0], obj.color[1], obj.color[2]);
+        noStroke();
+        ellipse(obj.x, obj.y, obj.size, obj.size);
+      }
     }
   }
 }
@@ -113,19 +131,36 @@ function drawBackgroundFront() {
   let trackTop = height / 3;
   for (let obj of backgroundObjects) {
     if (obj.y >= trackTop) {
-      fill(obj.color[0], obj.color[1], obj.color[2]);
-      noStroke();
-      ellipse(obj.x, obj.y, obj.size, obj.size);
+      // Try to get image if we don't have one yet (async loading)
+      if (!obj.image && typeof getRandomObject === 'function') {
+        obj.image = getRandomObject();
+      }
+      
+      if (obj.image) {
+        // Draw the image centered
+        push();
+        imageMode(CENTER);
+        image(obj.image, obj.x, obj.y, obj.size, obj.size);
+        pop();
+      } else {
+        // Fallback to colored circle
+        fill(obj.color[0], obj.color[1], obj.color[2]);
+        noStroke();
+        ellipse(obj.x, obj.y, obj.size, obj.size);
+      }
     }
   }
 }
 
 /**
  * Draws the ground (bottom 2/3 of screen)
+ * Uses a solid color based on current theme
  */
 function drawGround() {
   let trackTop = height / 3;
-  fill(50, 180, 50); // Green color
+  
+  // Semi-dark orange for beach theme
+  fill(194, 120, 50);
   noStroke();
   rect(0, trackTop, width, height - trackTop);
 }

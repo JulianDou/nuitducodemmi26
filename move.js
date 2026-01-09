@@ -101,7 +101,7 @@ function drawPlayer() {
 }
 
 function handlePauseLogic() {
-  if (!isPaused && millis() - lastPauseTime > 3000) {
+  if (!isPaused && millis() - lastPauseTime > 10000) {
     triggerPoseEvent();
   }
 
@@ -130,6 +130,11 @@ function handlePauseLogic() {
         isPaused = false;
         poseValidated = false;
         lastPauseTime = millis();
+        
+        // Switch to a new theme after pose validation
+        if (typeof switchToNewTheme === 'function') {
+          switchToNewTheme();
+        }
       }
     } else {
       // Normal countdown display
